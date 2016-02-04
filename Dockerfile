@@ -5,13 +5,12 @@ FROM debian:sid
 ## install wattsi from specific version of repo
 ## cleanup freepascal since it is no longer needed after wattsi build
 RUN apt-get update && \
-    apt-get install -y ca-certificates curl git python subversion unzip libxml-parser-perl fp-compiler-3.0.0 apache2 && \
+    apt-get install -y ca-certificates curl git unzip fp-compiler-3.0.0 apache2 && \
     cd /etc/apache2/mods-enabled && \
     ln -s ../mods-available/headers.load && \
     ln -s ../mods-available/expires.load && \
     git clone https://github.com/whatwg/wattsi.git /whatwg/wattsi && \
     cd /whatwg/wattsi && \
-    git reset --hard 351df15 && \
     /whatwg/wattsi/build.sh && \
     cp /whatwg/wattsi/bin/wattsi /bin/ && \
     apt-get purge -y fp-compiler-3.0.0 && \
@@ -21,7 +20,6 @@ RUN apt-get update && \
 ## get a known good version of the build repo
 RUN git clone https://github.com/whatwg/html-build.git /whatwg/build
 WORKDIR /whatwg/build
-RUN git reset --hard c37f28ad
 
 ADD . /whatwg/html
 
@@ -29,6 +27,7 @@ ADD . /whatwg/html
 RUN /whatwg/build/build.sh && \
     rm -rf /var/www/html && \
     mv /whatwg/build/output /var/www/html && \
+    chmod -R o+rX /var/www/html && \
     cp /whatwg/html/site.conf /etc/apache2/sites-available/000-default.conf
 
 CMD ["apache2ctl", "-DFOREGROUND"]
